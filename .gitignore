@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+
+# environment
+.env
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# build / coverage / cache
+dist/
+build/
+coverage/
+.nyc_output/
+.cache/
+.parcel-cache/
+.next/
+
+# uploads / temp
+uploads/
+tmp/
+temp/
+
+# local DB
+*.sqlite
+*.sqlite3

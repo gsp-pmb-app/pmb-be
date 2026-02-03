@@ -1,0 +1,11 @@
+# ngrok configuration for backend — keep authtoken out of the repo.
+# Add your local authtoken instead with one of the following commands:
+#   ngrok config add-authtoken <YOUR_AUTHTOKEN>   # ngrok v3+
+#   ngrok authtoken <YOUR_AUTHTOKEN>            # older ngrok versions
+# After adding the token locally you can start the tunnel with the npm script below.
+version: "2"
+tunnels:
+  pmb-backend:
+    proto: http
+    addr: 5000
+    inspect: true
