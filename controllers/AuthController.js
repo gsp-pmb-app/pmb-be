@@ -1,4 +1,5 @@
 import User from "../models/UserModel.js";
+import Pendaftar from "../models/PendaftarModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { generateKodeAkses } from "../helpers/generateKodeAkses.js";
@@ -78,7 +79,7 @@ export const registerPendaftar = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      msg: "Register failed",
+      msg: error?.message,
       error: error?.message,
       stack: error?.stack,
     });
