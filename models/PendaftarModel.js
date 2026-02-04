@@ -9,34 +9,76 @@ const Pendaftar = db.define(
       unique: true,
       allowNull: true,
     },
+
     kode_akses: {
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
     },
+
     nama_lengkap: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    no_wa: {
+
+    no_tele: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
-    // TELEGRAM INTEGRATION
+    // 🎓 Pendidikan terakhir (simple, sesuai soal)
+    pendidikan_institusi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    pendidikan_jurusan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    pendidikan_jenjang: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    tahun_lulus: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    // 🎯 Pilihan sistem PMB
+    prodiId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    jadwalUjianId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    // 📸 Upload foto
+    foto_path: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    // 📩 TELEGRAM (tetap dipakai = nilai plus)
     telegram_token: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: true,
     },
+
     telegram_chat_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     telegram_username: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     status: {
       type: DataTypes.ENUM(
         "baru",

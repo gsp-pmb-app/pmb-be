@@ -3,6 +3,7 @@ import db from "./config/Database.js";
 import router from "./routes/index.js";
 import cors from "cors";
 import dotenv from "dotenv";
+import FileUpload from "express-fileupload";
 
 dotenv.config();
 const app = express();
@@ -19,7 +20,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman / server-to-server
+    if (!origin) return callback(null, true); // postman
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error("CORS policy: origin not allowed"), false);
   },
@@ -29,8 +30,15 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ================== MIDDLEWARE ==================
+/* ================== MIDDLEWARE ================== */
 app.use(express.json());
+app.use(
+  FileUpload({
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    abortOnLimit: true,
+    createParentPath: true,
+  }),
+);
 app.use((req, res, next) => {
   console.log(
     `${new Date().toISOString()} ${req.method} ${req.originalUrl} - body: ${JSON.stringify(req.body)}`,
@@ -38,31 +46,43 @@ app.use((req, res, next) => {
   next();
 });
 
-// ================== DATABASE ==================
-try {
-  await db.authenticate();
-  console.log("Database connection has been established successfully.");
-  // NOTE: disabled automatic schema alter to avoid ALTER statements in dev
-  // await db.sync({ alter: true });
-  // console.log("Database synced.");
-} catch (error) {
-  console.error("Unable to connect to the database:", error);
-}
+/* ================== DATABASE ================== */
+const startServer = async () => {
+  try {
+    await db.authenticate();
+    console.log("Database connected");
 
-// ================== ROUTES ==================
+    if (process.env.NODE_ENV !== "production") {
+      await db.sync({ alter: true });
+      console.log("Database synced");
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+/* ================== ROUTES ================== */
 app.use("/api", router);
-// global error handler (put before app.listen)
+
+/* ================== GLOBAL ERROR HANDLER ================== */
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   if (process.env.NODE_ENV === "production") {
     return res.status(500).json({ msg: "Internal Server Error" });
   }
-  return res
-    .status(500)
-    .json({ msg: "Register failed", error: err.message, stack: err.stack });
+  return res.status(500).json({
+    msg: err.message || "Internal Server Error",
+  });
 });
 
-// ================== SERVER ==================
+/* ================== SERVER ================== */
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
