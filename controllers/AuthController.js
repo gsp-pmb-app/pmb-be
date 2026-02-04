@@ -128,7 +128,7 @@ export const telegramWebhook = async (req, res) => {
 *Kode Akses:* *${kode_akses}*
 
 Simpan nomor dan kode ini untuk login ke sistem PMB.
-Link login: https://univexample.sch.is/pmb/login
+Link login: ${process.env.FE_URL}/pmb/login
 `;
 
     await sendTelegramMessage(msg.chat.id, message);
