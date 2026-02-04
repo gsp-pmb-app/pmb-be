@@ -27,7 +27,7 @@ coverage/
 .next/
 
 # uploads / temp
-uploads/
+# uploads/
 tmp/
 temp/
 
