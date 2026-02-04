@@ -52,10 +52,10 @@ const startServer = async () => {
     await db.authenticate();
     console.log("Database connected");
 
-    if (process.env.NODE_ENV !== "production") {
-      await db.sync({ alter: true });
-      console.log("Database synced");
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //   await db.sync({ alter: true });
+    //   console.log("Database synced");
+    // }
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
