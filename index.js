@@ -9,6 +9,7 @@ dotenv.config();
 const app = express();
 app.set("trust proxy", true);
 const PORT = process.env.PORT || 5000;
+const FE_URL = process.env.FE_URL || "https://gsp-pmb.netlify.app";
 
 const allowedOrigins = [
   process.env.NGROK_URL,
@@ -16,6 +17,7 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "http://localhost:5000",
   "http://localhost:5173",
+  FE_URL,
 ].filter(Boolean);
 
 const corsOptions = {
