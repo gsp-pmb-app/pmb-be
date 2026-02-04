@@ -42,3 +42,10 @@ export const pendaftarOnly = (req, res, next) => {
   }
   next();
 };
+
+export const adminOrStaff = (req, res, next) => {
+  if (req.user.role !== "admin" && req.user.role !== "staff") {
+    return res.status(403).json({ msg: "Admin or Staff only" });
+  }
+  next();
+};

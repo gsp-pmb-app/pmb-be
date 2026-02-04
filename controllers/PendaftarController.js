@@ -1,149 +1,182 @@
 import Pendaftar from "../models/PendaftarModel.js";
-import jwt from "jsonwebtoken";
 
-/* ================== HELPERS ================== */
-const generateNomorPendaftaran = () => {
-  const t = Date.now().toString();
-  const rnd = Math.floor(Math.random() * 900) + 100;
-  return `PMB${t.slice(-6)}${rnd}`;
-};
+/* ================== START PENDAFTAR ================== */
 
-const generateKodeAkses = () => {
-  return Math.random().toString(36).slice(-6).toUpperCase();
-};
-
-const generateTelegramToken = () => {
-  return "PMB-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-};
-
-const sendTelegramMessage = async (chat_id, text) => {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token || !chat_id) return false;
-
+// GET PROFILE
+export const getProfile = async (req, res) => {
   try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${token}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id,
-          text,
-          parse_mode: "Markdown",
-          disable_web_page_preview: true,
-        }),
-      },
-    );
-    const data = await res.json();
-    return data.ok === true;
+    const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId);
+
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+
+    res.json(pendaftar);
   } catch (err) {
-    console.log("Telegram error:", err);
-    return false;
+    res.status(500).json({ msg: err.message });
   }
 };
 
-/* ================== CONTROLLER ================== */
-
-// REGISTER
-export const registerPendaftar = async (req, res) => {
-  const { nama_lengkap, no_wa } = req.body;
-  if (!nama_lengkap || !no_wa)
-    return res.status(400).json({ msg: "nama_lengkap & no_wa required" });
-
-  const telegram_token = generateTelegramToken();
-
+// UPDATE PROFILE
+export const updateProfile = async (req, res) => {
   try {
-    await Pendaftar.create({
-      nama_lengkap,
-      no_wa,
-      telegram_token,
-      status: "baru",
+    const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId);
+
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+
+    const {
+      pendidikan_institusi,
+      pendidikan_jurusan,
+      pendidikan_jenjang,
+      tahun_lulus,
+      prodiId,
+    } = req.body;
+
+    await pendaftar.update({
+      pendidikan_institusi,
+      pendidikan_jurusan,
+      pendidikan_jenjang,
+      tahun_lulus,
+      prodiId,
+      status: "lengkap",
+    });
+
+    res.json({ msg: "Pendaftaran berhasil" });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// GET JADWAL UJIAN
+export const getJadwalUjian = async (req, res) => {
+  try {
+    const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId, {
+      include: [
+        { model: Prodi },
+        {
+          model: JadwalUjian,
+          include: [Ruangan],
+        },
+      ],
+    });
+
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+
+    res.json({
+      jenjang: pendaftar.pendidikan_jenjang,
+      prodi: pendaftar.Prodi?.nama_prodi,
+      tanggal: pendaftar.JadwalUjian?.tanggal,
+      jam: pendaftar.JadwalUjian?.jam,
+      ruangan: pendaftar.JadwalUjian?.Ruangan?.nama_ruangan,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// GET KARTU UJIAN
+export const getKartuUjian = async (req, res) => {
+  try {
+    const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId, {
+      include: [
+        { model: Prodi },
+        {
+          model: JadwalUjian,
+          include: [Ruangan],
+        },
+      ],
+    });
+
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+
+    res.json({
+      nama: pendaftar.nama_lengkap,
+      nomor_pendaftaran: pendaftar.nomor_pendaftaran,
+      jenjang: pendaftar.pendidikan_jenjang,
+      prodi: pendaftar.Prodi?.nama_prodi,
+      jadwal: pendaftar.JadwalUjian
+        ? `${pendaftar.JadwalUjian.tanggal} ${pendaftar.JadwalUjian.jam}`
+        : null,
+      ruangan: pendaftar.JadwalUjian?.Ruangan?.nama_ruangan,
+      foto: pendaftar.foto_path,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// GET STATUS KELILISAN
+export const getStatus = async (req, res) => {
+  try {
+    const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId);
+
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+
+    res.json({
+      status: pendaftar.status,
+      jenjang: pendaftar.pendidikan_jenjang,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+/* ================== END PENDAFTAR ================== */
+
+/* ================== START DATA PENDAFTAR ================== */
+
+// GET ALL PENDAFTAR
+export const getAllPendaftar = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const prodiId = req.query.prodiId;
+
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (prodiId) where.prodiId = prodiId;
+
+    const { rows, count } = await Pendaftar.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
+      attributes: { exclude: ["kode_akses", "telegram_token"] },
     });
 
     res.json({
-      msg: "Draft pendaftar created",
-      telegram_token,
-      telegram_url: `https://t.me/pmbgspbot?start=${telegram_token}`,
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      data: rows,
     });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Register failed",
-      error: error?.message,
-      stack: error?.stack,
-    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
   }
 };
 
-// TELEGRAM WEBHOOK
-export const telegramWebhook = async (req, res) => {
-  const msg = req.body.message;
-  if (!msg || !msg.text) return res.sendStatus(200);
-
-  if (msg.text.startsWith("/start")) {
-    const token = msg.text.split(" ")[1];
-    if (!token) return res.sendStatus(200);
+// GET PENDAFTAR BY ID
+export const getPendaftarById = async (req, res) => {
+  try {
+    const { nomor_pendaftaran } = req.params;
 
     const pendaftar = await Pendaftar.findOne({
-      where: { telegram_token: token },
+      where: { nomor_pendaftaran },
+      attributes: { exclude: ["kode_akses", "telegram_token"] },
     });
 
-    if (!pendaftar) {
-      await sendTelegramMessage(
-        msg.chat.id,
-        "Token tidak valid. Silakan daftar melalui website.",
-      );
-      return res.sendStatus(200);
-    }
+    if (!pendaftar)
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
 
-    // GENERATE NOMOR PENDAFTARAN & KODE AKSES
-    const nomor_pendaftaran = generateNomorPendaftaran();
-    const kode_akses = generateKodeAkses();
-
-    // UPDATE DATABASE
-    await pendaftar.update({
-      telegram_chat_id: msg.chat.id,
-      telegram_username: msg.from.username || null,
-      nomor_pendaftaran: nomor_pendaftaran,
-      kode_akses: kode_akses,
-      status: "aktif", // ubah status dari "baru" → "aktif"
-    });
-
-    // KIRIM KE USER
-    const message = `
-*Pendaftaran Berhasil!*
-
-*Nomor Pendaftaran:* *${nomor_pendaftaran}*
-
-*Kode Akses:* *${kode_akses}*
-
-Simpan nomor dan kode ini untuk login ke sistem PMB.
-Link login: https://univexample.sch.is/pmb/login
-`;
-
-    await sendTelegramMessage(msg.chat.id, message);
+    res.json(pendaftar);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
   }
-
-  res.sendStatus(200);
 };
 
-export const loginPendaftar = async (req, res) => {
-  const { nomor_pendaftaran, kode_akses } = req.body;
-
-  const pendaftar = await Pendaftar.findOne({
-    where: { nomor_pendaftaran },
-  });
-
-  if (!pendaftar)
-    return res.status(404).json({ msg: "Nomor pendaftaran not found" });
-
-  if (pendaftar.kode_akses !== kode_akses)
-    return res.status(400).json({ msg: "Wrong access code" });
-
-  const token = jwt.sign(
-    { pendaftarId: pendaftar.id, role: "pendaftar" },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "2h" },
-  );
-
-  res.json({ accessToken: token });
-};
+/* ================== END DATA PENDAFTAR ================== */
