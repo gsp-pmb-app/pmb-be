@@ -54,10 +54,8 @@ const startServer = async () => {
     await db.authenticate();
     console.log("Database connected");
 
-    // if (process.env.NODE_ENV !== "production") {
-    //   await db.sync({ alter: true });
-    //   console.log("Database synced");
-    // }
+    await db.sync(); // ⬅️ INI MIGRATION-NYA
+    console.log("Database synced");
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
@@ -82,9 +80,4 @@ app.use((err, req, res, next) => {
   return res.status(500).json({
     msg: err.message || "Internal Server Error",
   });
-});
-
-/* ================== SERVER ================== */
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
 });
