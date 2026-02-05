@@ -54,7 +54,7 @@ const startServer = async () => {
     await db.authenticate();
     console.log("Database connected");
 
-    await db.sync(); // ⬅️ INI MIGRATION-NYA
+    await db.sync();
     console.log("Database synced");
 
     app.listen(PORT, () => {

@@ -42,14 +42,8 @@ const router = express.Router();
 
 router.get("/", (req, res) => res.send("200 ok"));
 
-// GLOBAL (ADMIN & STAFF)
-router.get("/pendaftar", verifyToken, adminOrStaff, getAllPendaftar);
-router.get(
-  "/pendaftar/:nomor_pendaftaran",
-  verifyToken,
-  adminOrStaff,
-  getPendaftarById,
-);
+// TEST
+router.get("/", (req, res) => res.send("200 ok"));
 
 // AUTH
 router.post("/auth/admin/register", registerUser);
@@ -66,14 +60,18 @@ router.get("/pendaftar/jadwal", verifyToken, getJadwalUjian);
 router.get("/pendaftar/kartu-ujian", verifyToken, getKartuUjian);
 router.get("/pendaftar/status", verifyToken, getStatus);
 
+// GLOBAL (ADMIN & STAFF)
+router.get("/pendaftar", verifyToken, getAllPendaftar);
+router.get("/pendaftar/:nomor_pendaftaran", verifyToken, getPendaftarById);
+
 // ADMIN
 router.post("/admin/prodi", verifyToken, adminOnly, createProdi);
-router.get("/admin/prodi", verifyToken, adminOnly, getProdi);
+router.get("/admin/prodi", verifyToken, getProdi);
 router.put("/admin/prodi/:id", verifyToken, adminOnly, updateProdi);
 router.delete("/admin/prodi/:id", verifyToken, adminOnly, deleteProdi);
 router.post("/admin/ruangan", verifyToken, adminOnly, createRuangan);
 router.post("/admin/jadwal", verifyToken, adminOnly, createJadwal);
-router.get("/admin/jadwal", verifyToken, adminOnly, getJadwal);
+router.get("/admin/jadwal", verifyToken, getJadwal);
 
 // STAFF
 router.put(
