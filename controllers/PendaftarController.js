@@ -7,8 +7,9 @@ export const getProfile = async (req, res) => {
   try {
     const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId);
 
-    if (!pendaftar)
+    if (!pendaftar) {
       return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+    }
 
     res.json(pendaftar);
   } catch (err) {
@@ -67,7 +68,7 @@ export const getJadwalUjian = async (req, res) => {
       jenjang: pendaftar.pendidikan_jenjang,
       prodi: pendaftar.Prodi?.nama_prodi,
       tanggal: pendaftar.JadwalUjian?.tanggal,
-      jam: pendaftar.JadwalUjian?.jam,
+      sesi: pendaftar.JadwalUjian?.sesi,
       ruangan: pendaftar.JadwalUjian?.Ruangan?.nama_ruangan,
     });
   } catch (err) {
@@ -107,7 +108,7 @@ export const getKartuUjian = async (req, res) => {
   }
 };
 
-// GET STATUS KELILISAN
+// GET STATUS KELULUSAN
 export const getStatus = async (req, res) => {
   try {
     const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId);
@@ -133,12 +134,14 @@ export const getAllPendaftar = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const prodiId = req.query.prodiId;
+    const prodiId = Number(req.query.prodiId);
 
     const offset = (page - 1) * limit;
 
     const where = {};
-    if (prodiId) where.prodiId = prodiId;
+    if (req.query.prodiId) {
+      where.id = Number(req.query.prodiId);
+    }
 
     const { rows, count } = await Pendaftar.findAndCountAll({
       where,

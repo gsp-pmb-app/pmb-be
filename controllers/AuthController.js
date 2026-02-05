@@ -158,7 +158,11 @@ export const loginPendaftar = async (req, res) => {
     { expiresIn: "2h" },
   );
 
-  res.json({ accessToken: token });
+  res.json({
+    accessToken: token,
+    role: "pendaftar",
+    nomor_pendaftaran: pendaftar.nomor_pendaftaran,
+  });
 };
 
 /* ================== END USER PENDAFTAR) ================== */
