@@ -117,7 +117,7 @@ export const telegramWebhook = async (req, res) => {
       telegram_username: msg.from.username || null,
       nomor_pendaftaran: nomor_pendaftaran,
       kode_akses: kode_akses,
-      status: "aktif",
+      status: "baru",
     });
 
     // KIRIM KE USER
