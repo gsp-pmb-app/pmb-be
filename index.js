@@ -53,7 +53,7 @@ const startServer = async () => {
     console.log("Database connected");
 
     if (process.env.NODE_ENV !== "production") {
-      await db.sync({ alter: true });
+      await db.sync();
       console.log("Database synced");
     }
 
