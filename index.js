@@ -4,6 +4,7 @@ import router from "./routes/index.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import FileUpload from "express-fileupload";
+import path from "path";
 
 dotenv.config();
 const app = express();
@@ -41,6 +42,7 @@ app.use(
     createParentPath: true,
   }),
 );
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use((req, res, next) => {
   console.log(
     `${new Date().toISOString()} ${req.method} ${req.originalUrl} - body: ${JSON.stringify(req.body)}`,
