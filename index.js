@@ -4,7 +4,6 @@ import router from "./routes/index.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import FileUpload from "express-fileupload";
-import path from "path";
 
 dotenv.config();
 const app = express();
@@ -38,8 +37,8 @@ app.use(express.json());
 app.use(
   FileUpload({
     useTempFiles: true,
-    tempFileDir: "/tmp",
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    tempFileDir: "/tmp/",
+    limits: { fileSize: 5 * 1024 * 1024 },
     abortOnLimit: true,
   }),
 );
