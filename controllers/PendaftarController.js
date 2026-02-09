@@ -30,7 +30,9 @@ export const updateProfile = async (req, res) => {
       pendidikan_jurusan,
       pendidikan_jenjang,
       tahun_lulus,
+      jadwalUjianId,
       prodiId,
+      status,
     } = req.body;
 
     await pendaftar.update({
@@ -38,8 +40,9 @@ export const updateProfile = async (req, res) => {
       pendidikan_jurusan,
       pendidikan_jenjang,
       tahun_lulus,
+      jadwalUjianId,
       prodiId,
-      status: "lengkap",
+      status,
     });
 
     res.json({ msg: "Pendaftaran berhasil" });
