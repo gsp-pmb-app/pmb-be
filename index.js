@@ -37,12 +37,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(
   FileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp",
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     abortOnLimit: true,
-    createParentPath: true,
   }),
 );
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use((req, res, next) => {
   console.log(
     `${new Date().toISOString()} ${req.method} ${req.originalUrl} - body: ${JSON.stringify(req.body)}`,
