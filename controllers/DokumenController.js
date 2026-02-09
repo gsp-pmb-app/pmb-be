@@ -1,6 +1,6 @@
 import Dokumen from "../models/DokumenModel.js";
 import Pendaftar from "../models/PendaftarModel.js";
-import cloudinary from "../utils/cloudinary.js";
+import cloudinary from "../helpers/cloudinary.js";
 import path from "path";
 
 export const uploadDokumen = async (req, res) => {
