@@ -15,7 +15,10 @@ const Nilai = db.define(
     nilai: {
       type: DataTypes.FLOAT,
     },
-    file_path: DataTypes.STRING,
+    file_path: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

@@ -45,8 +45,6 @@ import {
 
 const router = express.Router();
 
-router.get("/", (req, res) => res.send("200 ok"));
-
 // TEST
 router.get("/", (req, res) => res.send("200 ok"));
 
