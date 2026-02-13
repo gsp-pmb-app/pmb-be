@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-
+import cloudinary from "../helpers/cloudinary.js";
+import path from "path";
 import Pendaftar from "../models/PendaftarModel.js";
 import Nilai from "../models/NilaiModel.js";
 import Prodi from "../models/ProdiModel.js";
