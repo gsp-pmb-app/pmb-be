@@ -227,32 +227,50 @@ export const getPendaftarById = async (req, res) => {
 
 /* ================== END DATA PENDAFTAR ================== */
 
-const pendaftar = await Pendaftar.findOne({
-  where: {
-    nomor_pendaftaran,
-    tanggal_lahir,
-  },
-  attributes: [
-    "nama_lengkap",
-    "nomor_pendaftaran",
-    "tanggal_lahir",
-    "status",
-    "pendidikan_jenjang",
-  ],
-  include: [
-    {
-      model: Prodi,
-      as: "prodiData",
-      attributes: ["nama_prodi"],
-    },
-  ],
-});
+export const checkKelulusan = async (req, res) => {
+  try {
+    const { nomor_pendaftaran, tanggal_lahir } = req.body;
 
-res.json({
-  nama: pendaftar.nama_lengkap,
-  nomor_pendaftaran: pendaftar.nomor_pendaftaran,
-  tanggal_lahir: pendaftar.tanggal_lahir,
-  status: pendaftar.status,
-  jenjang: pendaftar.pendidikan_jenjang,
-  prodi: pendaftar.prodiData?.nama_prodi,
-});
+    if (!nomor_pendaftaran || !tanggal_lahir) {
+      return res.status(400).json({ msg: "Data tidak lengkap" });
+    }
+
+    const pendaftar = await Pendaftar.findOne({
+      where: {
+        nomor_pendaftaran,
+        tanggal_lahir,
+      },
+      attributes: [
+        "nama_lengkap",
+        "nomor_pendaftaran",
+        "tanggal_lahir",
+        "status",
+        "pendidikan_jenjang",
+      ],
+      include: [
+        {
+          model: Prodi,
+          as: "prodiData",
+          attributes: ["nama_prodi"],
+        },
+      ],
+    });
+
+    if (!pendaftar) {
+      return res.status(404).json({
+        msg: "Data tidak ditemukan. Periksa kembali nomor dan tanggal lahir.",
+      });
+    }
+
+    res.json({
+      nama: pendaftar.nama_lengkap,
+      nomor_pendaftaran: pendaftar.nomor_pendaftaran,
+      tanggal_lahir: pendaftar.tanggal_lahir,
+      status: pendaftar.status,
+      jenjang: pendaftar.pendidikan_jenjang,
+      prodi: pendaftar.prodiData?.nama_prodi,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
