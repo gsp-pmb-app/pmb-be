@@ -49,7 +49,7 @@ export const inputNilai = async (req, res) => {
       return res.status(400).json({ msg: "Data tidak lengkap" });
     }
 
-    // Cari pendaftar
+    // cari pendaftar
     const pendaftar = await Pendaftar.findOne({
       where: { nomor_pendaftaran },
     });
@@ -66,7 +66,27 @@ export const inputNilai = async (req, res) => {
         .json({ msg: "Pendaftar belum memiliki jadwal ujian" });
     }
 
-    // Cek nilai existing
+    // upload file pdf
+    let fileUrl = null;
+
+    if (req.files && req.files.file) {
+      const file = req.files.file;
+
+      const ext = path.extname(file.name).toLowerCase();
+      if (ext !== ".pdf") {
+        return res.status(422).json({ msg: "File harus berformat PDF" });
+      }
+
+      const result = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: "pmb/dokumen",
+        resource_type: "raw",
+        format: "pdf",
+      });
+
+      fileUrl = result.secure_url;
+    }
+
+    // simpan atau update nilai
     const existingNilai = await Nilai.findOne({
       where: {
         pendaftarId: pendaftar.id,
@@ -77,25 +97,31 @@ export const inputNilai = async (req, res) => {
     let data;
 
     if (existingNilai) {
-      await existingNilai.update({ nilai });
+      await existingNilai.update({
+        nilai,
+        ...(fileUrl && { file_path: fileUrl }),
+      });
       data = existingNilai;
     } else {
       data = await Nilai.create({
         pendaftarId: pendaftar.id,
         jadwalId,
         nilai,
+        file_path: fileUrl,
       });
     }
 
-    const status = nilai >= 75 ? "lulus" : "tidak_lulus";
+    // update status lulus / tidak lulus
+    const statusBaru = nilai >= 75 ? "lulus" : "tidak_lulus";
 
-    await pendaftar.update({ status });
+    await pendaftar.update({ status: statusBaru });
 
     res.json({
-      msg: "Nilai berhasil disimpan dan status diperbarui",
+      msg: "Nilai dan file berhasil disimpan",
       data,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: err.message });
   }
 };
