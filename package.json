@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "ngrok": "ngrok start pmb-backend --config=./ngrok.yml",
+    "ngrok": "\"C:\\ngrok\\ngrok.exe\" start pmb-backend --config=./ngrok.yml",
     "ngrok:all": "ngrok start --all --config=./ngrok.yml"
   },
   "author": "",

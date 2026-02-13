@@ -28,6 +28,13 @@ const JadwalUjian = db.define(
   {
     freezeTableName: true,
     timestamps: true,
+
+    indexes: [
+      {
+        unique: true,
+        fields: ["tanggal", "sesi", "ruanganId"],
+      },
+    ],
   },
 );
 
