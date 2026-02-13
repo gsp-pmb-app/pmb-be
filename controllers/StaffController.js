@@ -1,29 +1,35 @@
-import Dokumen from "../models/DokumenModel.js";
-import Nilai from "../models/NilaiModel.js";
 import Pendaftar from "../models/PendaftarModel.js";
+import Nilai from "../models/NilaiModel.js";
+import Prodi from "../models/ProdiModel.js";
 
 /* ================== START VERIFIKASI DOKUMEN ================== */
 
 export const verifikasiDokumen = async (req, res) => {
   try {
-    const { id } = req.params; // id dokumen
-    const { status_verifikasi, catatan } = req.body;
+    const { nomor_pendaftaran } = req.params;
+    const { status } = req.body;
 
-    if (!["valid", "invalid"].includes(status_verifikasi)) {
-      return res.status(400).json({ msg: "Status verifikasi tidak valid" });
+    if (!["verifikasi", "ditolak"].includes(status)) {
+      return res.status(400).json({ msg: "Status tidak valid" });
     }
 
-    const dokumen = await Dokumen.findByPk(id);
-
-    if (!dokumen)
-      return res.status(404).json({ msg: "Dokumen tidak ditemukan" });
-
-    await dokumen.update({
-      status_verifikasi,
-      catatan,
+    const pendaftar = await Pendaftar.findOne({
+      where: { nomor_pendaftaran },
     });
 
-    res.json({ msg: "Dokumen berhasil diverifikasi" });
+    if (!pendaftar) {
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+    }
+
+    await pendaftar.update({ status });
+
+    res.json({
+      msg: "Status berhasil diperbarui",
+      data: {
+        nomor_pendaftaran: pendaftar.nomor_pendaftaran,
+        status: pendaftar.status,
+      },
+    });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -35,15 +41,58 @@ export const verifikasiDokumen = async (req, res) => {
 
 export const inputNilai = async (req, res) => {
   try {
-    const { pendaftarId, jadwalId, nilai } = req.body;
+    const { nomor_pendaftaran, nilai } = req.body;
 
-    const data = await Nilai.create({
-      pendaftarId,
-      jadwalId,
-      nilai,
+    if (!nomor_pendaftaran || nilai === undefined) {
+      return res.status(400).json({ msg: "Data tidak lengkap" });
+    }
+
+    // Cari pendaftar
+    const pendaftar = await Pendaftar.findOne({
+      where: { nomor_pendaftaran },
     });
 
-    res.json(data);
+    if (!pendaftar) {
+      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+    }
+
+    const jadwalId = pendaftar.jadwalUjianId;
+
+    if (!jadwalId) {
+      return res
+        .status(400)
+        .json({ msg: "Pendaftar belum memiliki jadwal ujian" });
+    }
+
+    // Cek nilai existing
+    const existingNilai = await Nilai.findOne({
+      where: {
+        pendaftarId: pendaftar.id,
+        jadwalId,
+      },
+    });
+
+    let data;
+
+    if (existingNilai) {
+      await existingNilai.update({ nilai });
+      data = existingNilai;
+    } else {
+      data = await Nilai.create({
+        pendaftarId: pendaftar.id,
+        jadwalId,
+        nilai,
+      });
+    }
+
+    const status = nilai >= 75 ? "lulus" : "tidak_lulus";
+
+    await pendaftar.update({ status });
+
+    res.json({
+      msg: "Nilai berhasil disimpan dan status diperbarui",
+      data,
+    });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -51,27 +100,49 @@ export const inputNilai = async (req, res) => {
 
 /* ================== END INPUT NILAI ================== */
 
-/* ================== START SET KELULUSAN ================== */
-
-export const setKelulusan = async (req, res) => {
+export const getYudisium = async (req, res) => {
   try {
-    const { pendaftarId, status } = req.body;
+    const { status, prodiId, jenjang } = req.query;
 
-    if (!["lulus", "tidak_lulus"].includes(status)) {
-      return res.status(400).json({ msg: "Status kelulusan tidak valid" });
-    }
+    const wherePendaftar = {};
+    if (status) wherePendaftar.status = status;
+    if (prodiId) wherePendaftar.prodiId = prodiId;
+    if (jenjang) wherePendaftar.pendidikan_jenjang = jenjang;
 
-    const pendaftar = await Pendaftar.findByPk(pendaftarId);
+    const data = await Pendaftar.findAll({
+      where: wherePendaftar,
+      attributes: [
+        "id",
+        "nomor_pendaftaran",
+        "nama_lengkap",
+        "pendidikan_jenjang",
+        "status",
+      ],
+      include: [
+        {
+          model: Prodi,
+          attributes: ["id", "nama_prodi"],
+        },
+        {
+          model: Nilai,
+          attributes: ["nilai", "file_path"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
 
-    if (!pendaftar)
-      return res.status(404).json({ msg: "Pendaftar tidak ditemukan" });
+    const result = data.map((item) => ({
+      nomor_pendaftaran: item.nomor_pendaftaran,
+      nama: item.nama_lengkap,
+      jenjang: item.pendidikan_jenjang,
+      prodi: item.Prodi?.nama_prodi,
+      nilai: item.Nilai?.[0]?.nilai || null,
+      file_path: item.Nilai?.[0]?.file_path || null,
+      status: item.status,
+    }));
 
-    await pendaftar.update({ status });
-
-    res.json({ msg: "Status kelulusan berhasil diupdate" });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
 };
-
-/* ================== END SET KELULUSAN ================== */

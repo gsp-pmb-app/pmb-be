@@ -21,12 +21,16 @@ const Pendaftar = db.define(
       allowNull: false,
     },
 
+    tanggal_lahir: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+
     no_tele: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
-    // 🎓 Pendidikan terakhir (simple, sesuai soal)
     pendidikan_institusi: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -45,7 +49,6 @@ const Pendaftar = db.define(
       allowNull: true,
     },
 
-    // 🎯 Pilihan sistem PMB
     prodiId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -56,13 +59,16 @@ const Pendaftar = db.define(
       allowNull: true,
     },
 
-    // 📸 Upload foto
     foto_path: {
       type: DataTypes.STRING,
       allowNull: true,
     },
 
-    // 📩 TELEGRAM (tetap dipakai = nilai plus)
+    file_path: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     telegram_token: {
       type: DataTypes.STRING,
       unique: true,
@@ -84,6 +90,7 @@ const Pendaftar = db.define(
         "baru",
         "aktif",
         "verifikasi",
+        "ditolak",
         "lulus",
         "tidak_lulus",
       ),
