@@ -79,7 +79,7 @@ export const inputNilai = async (req, res) => {
       }
 
       const result = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "pmb/dokumen",
+        folder: "pmb/nilai",
         resource_type: "raw",
         format: "pdf",
       });
@@ -165,10 +165,12 @@ export const getYudisium = async (req, res) => {
       include: [
         {
           model: Prodi,
+          as: "prodiData",
           attributes: ["id", "nama_prodi"],
         },
         {
           model: Nilai,
+          as: "nilaiData",
           attributes: ["nilai", "file_path"],
         },
       ],
@@ -179,9 +181,9 @@ export const getYudisium = async (req, res) => {
       nomor_pendaftaran: item.nomor_pendaftaran,
       nama: item.nama_lengkap,
       jenjang: item.pendidikan_jenjang,
-      prodi: item.Prodi?.nama_prodi || "-",
-      nilai: item.Nilai?.nilai ?? null,
-      file_path: item.Nilai?.file_path ?? null,
+      prodi: item.prodiData?.nama_prodi || "-",
+      nilai: item.nilaiData?.nilai ?? null,
+      file_path: item.nilaiData?.file_path ?? null,
       status: item.status,
     }));
 
