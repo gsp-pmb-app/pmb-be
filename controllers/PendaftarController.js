@@ -61,7 +61,7 @@ export const getJadwalUjian = async (req, res) => {
   try {
     const pendaftar = await Pendaftar.findByPk(req.user.pendaftarId, {
       include: [
-        { model: Prodi },
+        { model: Prodi, as: "prodiData" },
         {
           model: JadwalUjian,
           include: [Ruangan],
@@ -74,7 +74,7 @@ export const getJadwalUjian = async (req, res) => {
 
     res.json({
       jenjang: pendaftar.pendidikan_jenjang,
-      prodi: pendaftar.Prodi?.nama_prodi,
+      prodi: pendaftar.prodiData?.nama_prodi,
       tanggal: pendaftar.JadwalUjian?.tanggal,
       sesi: pendaftar.JadwalUjian?.sesi,
       ruangan: pendaftar.JadwalUjian?.Ruangan?.nama_ruangan,
@@ -99,6 +99,7 @@ export const getKartuUjian = async (req, res) => {
       include: [
         {
           model: Prodi,
+          as: "prodiData",
           attributes: ["id", "nama_prodi"],
         },
         {
@@ -123,9 +124,7 @@ export const getKartuUjian = async (req, res) => {
       nomor_pendaftaran: pendaftar.nomor_pendaftaran,
       jenjang: pendaftar.pendidikan_jenjang,
       foto: pendaftar.foto_path,
-
-      prodi: pendaftar.Prodi || null,
-
+      prodi: pendaftar.prodiData || null,
       jadwal: pendaftar.JadwalUjian
         ? {
             ...pendaftar.JadwalUjian.toJSON(),
@@ -207,6 +206,7 @@ export const getPendaftarById = async (req, res) => {
       include: [
         {
           model: Prodi,
+          as: "prodiData",
           attributes: ["id", "nama_prodi"],
         },
         {
@@ -227,49 +227,32 @@ export const getPendaftarById = async (req, res) => {
 
 /* ================== END DATA PENDAFTAR ================== */
 
-export const checkKelulusan = async (req, res) => {
-  try {
-    const { nomor_pendaftaran, tanggal_lahir } = req.body;
+const pendaftar = await Pendaftar.findOne({
+  where: {
+    nomor_pendaftaran,
+    tanggal_lahir,
+  },
+  attributes: [
+    "nama_lengkap",
+    "nomor_pendaftaran",
+    "tanggal_lahir",
+    "status",
+    "pendidikan_jenjang",
+  ],
+  include: [
+    {
+      model: Prodi,
+      as: "prodiData",
+      attributes: ["nama_prodi"],
+    },
+  ],
+});
 
-    if (!nomor_pendaftaran || !tanggal_lahir) {
-      return res.status(400).json({ msg: "Data tidak lengkap" });
-    }
-
-    const pendaftar = await Pendaftar.findOne({
-      where: {
-        nomor_pendaftaran,
-        tanggal_lahir,
-      },
-      attributes: [
-        "nama_lengkap",
-        "nomor_pendaftaran",
-        "tanggal_lahir",
-        "status",
-        "pendidikan_jenjang",
-      ],
-      include: [
-        {
-          model: Prodi,
-          attributes: ["nama_prodi"],
-        },
-      ],
-    });
-
-    if (!pendaftar) {
-      return res.status(404).json({
-        msg: "Data tidak ditemukan. Periksa kembali nomor dan tanggal lahir.",
-      });
-    }
-
-    res.json({
-      nama: pendaftar.nama_lengkap,
-      nomor_pendaftaran: pendaftar.nomor_pendaftaran,
-      tanggal_lahir: pendaftar.tanggal_lahir,
-      status: pendaftar.status,
-      jenjang: pendaftar.pendidikan_jenjang,
-      prodi: pendaftar.Prodi?.nama_prodi,
-    });
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-};
+res.json({
+  nama: pendaftar.nama_lengkap,
+  nomor_pendaftaran: pendaftar.nomor_pendaftaran,
+  tanggal_lahir: pendaftar.tanggal_lahir,
+  status: pendaftar.status,
+  jenjang: pendaftar.pendidikan_jenjang,
+  prodi: pendaftar.prodiData?.nama_prodi,
+});
