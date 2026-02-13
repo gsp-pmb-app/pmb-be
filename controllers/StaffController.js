@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+
 import Pendaftar from "../models/PendaftarModel.js";
 import Nilai from "../models/NilaiModel.js";
 import Prodi from "../models/ProdiModel.js";
@@ -104,10 +106,25 @@ export const getYudisium = async (req, res) => {
   try {
     const { status, prodiId, jenjang } = req.query;
 
-    const wherePendaftar = {};
-    if (status) wherePendaftar.status = status;
-    if (prodiId) wherePendaftar.prodiId = prodiId;
-    if (jenjang) wherePendaftar.pendidikan_jenjang = jenjang;
+    const allowedStatus = ["verifikasi", "lulus", "tidak_lulus"];
+
+    const wherePendaftar = {
+      status: {
+        [Op.in]: allowedStatus,
+      },
+    };
+
+    if (status && allowedStatus.includes(status)) {
+      wherePendaftar.status = status;
+    }
+
+    if (prodiId) {
+      wherePendaftar.prodiId = prodiId;
+    }
+
+    if (jenjang) {
+      wherePendaftar.pendidikan_jenjang = jenjang;
+    }
 
     const data = await Pendaftar.findAll({
       where: wherePendaftar,
@@ -135,14 +152,15 @@ export const getYudisium = async (req, res) => {
       nomor_pendaftaran: item.nomor_pendaftaran,
       nama: item.nama_lengkap,
       jenjang: item.pendidikan_jenjang,
-      prodi: item.Prodi?.nama_prodi,
-      nilai: item.Nilai?.[0]?.nilai || null,
-      file_path: item.Nilai?.[0]?.file_path || null,
+      prodi: item.Prodi?.nama_prodi || "-",
+      nilai: item.Nilai?.[0]?.nilai ?? null,
+      file_path: item.Nilai?.[0]?.file_path ?? null,
       status: item.status,
     }));
 
     res.json(result);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: err.message });
   }
 };
