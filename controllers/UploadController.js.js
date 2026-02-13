@@ -17,7 +17,8 @@ export const uploadDokumen = async (req, res) => {
 
       const result = await cloudinary.uploader.upload(dokumen.tempFilePath, {
         folder: "pmb/dokumen",
-        resource_type: "raw", // PDF
+        resource_type: "raw",
+        format: "pdf",
       });
 
       await Pendaftar.update(
