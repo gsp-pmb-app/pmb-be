@@ -4,8 +4,6 @@ import router from "./routes/index.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import FileUpload from "express-fileupload";
-import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./docs/swagger.js";
 import "./models/index.js";
 
 dotenv.config();
@@ -51,7 +49,6 @@ app.use((req, res, next) => {
   );
   next();
 });
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /* ================== DATABASE ================== */
 const startServer = async () => {
