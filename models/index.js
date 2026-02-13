@@ -7,8 +7,14 @@ import Nilai from "./NilaiModel.js";
 /* ================= RELATIONS ================= */
 
 // Pendaftar -> Prodi
-Pendaftar.belongsTo(Prodi, { foreignKey: "prodiId" });
-Prodi.hasMany(Pendaftar, { foreignKey: "prodiId" });
+Pendaftar.belongsTo(Prodi, {
+  foreignKey: "prodiId",
+  as: "prodiData",
+});
+
+Prodi.hasMany(Pendaftar, {
+  foreignKey: "prodiId",
+});
 
 // Pendaftar -> Jadwal
 Pendaftar.belongsTo(JadwalUjian, { foreignKey: "jadwalUjianId" });
@@ -23,7 +29,13 @@ JadwalUjian.belongsTo(Prodi, { foreignKey: "prodiId" });
 Prodi.hasMany(JadwalUjian, { foreignKey: "prodiId" });
 
 // Pendaftar -> Nilai
-Pendaftar.hasOne(Nilai, { foreignKey: "pendaftarId" });
-Nilai.belongsTo(Pendaftar, { foreignKey: "pendaftarId" });
+Pendaftar.hasOne(Nilai, {
+  foreignKey: "pendaftarId",
+  as: "nilaiData",
+});
+
+Nilai.belongsTo(Pendaftar, {
+  foreignKey: "pendaftarId",
+});
 
 export { Pendaftar, Prodi, JadwalUjian, Ruangan, Nilai };
