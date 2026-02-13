@@ -180,8 +180,8 @@ export const getYudisium = async (req, res) => {
       nama: item.nama_lengkap,
       jenjang: item.pendidikan_jenjang,
       prodi: item.Prodi?.nama_prodi || "-",
-      nilai: item.Nilai?.[0]?.nilai ?? null,
-      file_path: item.Nilai?.[0]?.file_path ?? null,
+      nilai: item.Nilai?.nilai ?? null,
+      file_path: item.Nilai?.file_path ?? null,
       status: item.status,
     }));
 
